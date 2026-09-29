@@ -1,6 +1,6 @@
-// Dummy catalogue for development: egg/eggless flags and Unsplash photos are
-// placeholders. Swap in real Cakewala details here; this file is the single
-// place product data lives.
+// Cakewala's cakes: the real menu first, then sample cakes. Photos are Unsplash
+// placeholders until real product photos are ready. This file is the single place
+// product data lives.
 
 export const photo = (id, width = 900) =>
   `https://images.unsplash.com/photo-${id}?w=${width}&auto=format&fit=crop&q=80`;
@@ -8,7 +8,7 @@ export const photo = (id, width = 900) =>
 // Occasion and flavour groups follow justbake.in / bakingo.com. Each image is
 // the thumbnail shown in the category bar.
 export const occasions = [
-  { name: "Birthday", image: photo("1464349153735-7db50ed83c84") },
+  { name: "Birthday", image: photo("1607482369189-a53b6e71fa48") },
   { name: "Anniversary", image: photo("1635349135195-ea08a39fcc5c") },
   { name: "Wedding", image: photo("1535141192574-5d4897c12636") },
   { name: "Engagement", image: photo("1559620192-032c4bc4674e") },
@@ -29,6 +29,201 @@ export const flavours = [
 ];
 
 export const cakes = [
+  // Cakewala's menu: 1 kg cakes, all eggless.
+  {
+    id: "butterscotch-cake",
+    name: "Butterscotch Cake",
+    flavours: ["Butterscotch"],
+    occasions: ["Birthday", "Anniversary"],
+    eggless: true,
+    image: photo("1779282312372-bffbffb8f661"),
+  },
+  {
+    id: "black-currant-cake",
+    name: "Black Currant Cake",
+    flavours: ["Fruit"],
+    occasions: ["Birthday"],
+    eggless: true,
+    image: photo("1778447964490-8e52582f081c"),
+  },
+  {
+    id: "blueberry-cake",
+    name: "Blueberry Cake",
+    flavours: ["Fruit"],
+    occasions: ["Birthday", "Baby Shower"],
+    eggless: true,
+    image: photo("1653469742883-c47111ae3bc4"),
+  },
+  {
+    id: "black-forest-cake",
+    name: "Black Forest Cake",
+    flavours: ["Black Forest"],
+    occasions: ["Birthday", "Anniversary"],
+    eggless: true,
+    image: photo("1620492129802-2955e00f161e"),
+  },
+  {
+    id: "strawberry-cake",
+    name: "Strawberry Cake",
+    flavours: ["Fruit"],
+    occasions: ["Birthday", "Kids", "Valentine's Day"],
+    eggless: true,
+    image: photo("1579356094148-9b74dab60f5b"),
+  },
+  {
+    id: "italian-cake",
+    name: "Italian Cake",
+    flavours: ["Chocolate"],
+    occasions: ["Birthday", "Anniversary"],
+    eggless: true,
+    image: photo("1571115177098-24ec42ed204d"),
+  },
+  {
+    id: "fresh-fruit-cake",
+    name: "Fresh Fruit Cake",
+    flavours: ["Fruit"],
+    occasions: ["Birthday", "Baby Shower"],
+    eggless: true,
+    image: photo("1508736375612-66c03035c629"),
+  },
+  {
+    id: "choco-fancy-cake",
+    name: "Choco Fancy Cake",
+    flavours: ["Chocolate"],
+    occasions: ["Birthday", "Kids"],
+    eggless: true,
+    image: photo("1702744382319-20efefc9dc19"),
+  },
+  {
+    id: "red-velvet-cake",
+    name: "Red Velvet Cake",
+    flavours: ["Red Velvet"],
+    occasions: ["Anniversary", "Valentine's Day", "Engagement"],
+    eggless: true,
+    image: photo("1688153009623-0d9a3ba1b105"),
+  },
+  {
+    id: "honey-almond-cake",
+    name: "Honey Almond Cake",
+    flavours: ["Vanilla"],
+    occasions: ["Birthday", "Anniversary"],
+    eggless: true,
+    image: photo("1541780941982-9c9fa3a304b8"),
+  },
+  {
+    id: "choco-chip-cake",
+    name: "Choco Chip Cake",
+    flavours: ["Chocolate"],
+    occasions: ["Birthday", "Kids"],
+    eggless: true,
+    image: photo("1549572189-dddb1adf739b"),
+  },
+  {
+    id: "pineapple-cake",
+    name: "Pineapple Cake",
+    flavours: ["Fruit"],
+    occasions: ["Birthday", "Kids"],
+    eggless: true,
+    image: photo("1628505048571-327399c9324c"),
+  },
+  {
+    id: "choco-total-cake",
+    name: "Choco Total Cake",
+    flavours: ["Chocolate"],
+    occasions: ["Birthday"],
+    eggless: true,
+    image: photo("1569929232526-d9c6578e1531"),
+  },
+  {
+    id: "dutch-chocolate-cake",
+    name: "Dutch Chocolate Cake",
+    flavours: ["Chocolate"],
+    occasions: ["Birthday", "Anniversary"],
+    eggless: true,
+    image: photo("1586985289906-406988974504"),
+  },
+  {
+    id: "opera-chocolate-cake",
+    name: "Opera Chocolate Cake",
+    flavours: ["Chocolate"],
+    occasions: ["Anniversary", "Engagement"],
+    eggless: true,
+    image: photo("1541781408260-3c61143b63d5"),
+  },
+  {
+    id: "fruit-and-nut-cake",
+    name: "Fruit & Nut Cake",
+    flavours: ["Fruit"],
+    occasions: ["Birthday", "Anniversary"],
+    eggless: true,
+    image: photo("1776268927313-cfe013018850"),
+  },
+  {
+    id: "german-black-forest-cake",
+    name: "German Black Forest Cake",
+    flavours: ["Black Forest"],
+    occasions: ["Birthday", "Anniversary"],
+    eggless: true,
+    image: photo("1620490448382-d2f51a08596f"),
+  },
+  {
+    id: "choco-truffle-cake",
+    name: "Choco Truffle Cake",
+    flavours: ["Chocolate"],
+    occasions: ["Birthday", "Anniversary", "Valentine's Day"],
+    eggless: true,
+    image: photo("1713274786002-fc911a7939e5"),
+  },
+  {
+    id: "premium-vanilla-cake",
+    name: "Premium Vanilla Cake",
+    flavours: ["Vanilla"],
+    occasions: ["Wedding", "Engagement", "Baby Shower"],
+    eggless: true,
+    image: photo("1568051243857-068aa3ea934d"),
+  },
+  {
+    id: "choco-strawberry-cake",
+    name: "Choco Strawberry Cake",
+    flavours: ["Chocolate", "Fruit"],
+    occasions: ["Valentine's Day", "Birthday"],
+    eggless: true,
+    image: photo("1611292995678-b5cbfa9b47c4"),
+  },
+  {
+    id: "mango-black-forest-cake",
+    name: "Mango Black Forest Cake",
+    flavours: ["Black Forest", "Fruit"],
+    occasions: ["Birthday"],
+    eggless: true,
+    image: photo("1642069251474-5cc71cfdf49b"),
+  },
+  {
+    id: "oreo-chocolate-cake",
+    name: "Oreo Chocolate Cake",
+    flavours: ["Chocolate"],
+    occasions: ["Kids", "Birthday"],
+    eggless: true,
+    image: photo("1779282312373-8c10b3ef63b1"),
+  },
+  {
+    id: "kitkat-cake",
+    name: "KitKat Cake",
+    flavours: ["Chocolate"],
+    occasions: ["Kids", "Birthday"],
+    eggless: true,
+    image: photo("1695886855883-d7162c1e3b09"),
+  },
+  {
+    id: "white-forest-cake",
+    name: "White Forest Cake",
+    flavours: ["Black Forest", "Vanilla"],
+    occasions: ["Birthday", "Anniversary", "Wedding"],
+    eggless: true,
+    image: photo("1692623615620-b48b8dba0fc8"),
+  },
+
+  // Sample cakes (placeholders with made-up names, photos and egg flags).
   {
     id: "belgian-chocolate-truffle",
     name: "Belgian Chocolate Truffle",

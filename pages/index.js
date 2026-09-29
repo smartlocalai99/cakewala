@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import Head from "next/head";
 import Header from "@/components/Header";
 import CategoryBar from "@/components/CategoryBar";
-import CakeMenu from "@/components/CakeMenu";
+import CakeRow from "@/components/CakeRow";
+import SearchResults from "@/components/SearchResults";
 import SpecialsCarousel, { bannerAspect } from "@/components/SpecialsCarousel";
 import { cakes, occasions, flavours } from "@/data/cakes";
 import { specials } from "@/data/specials";
@@ -23,27 +24,63 @@ const structuredData = {
   openingHours: "Mo-Su 10:00-21:00",
 };
 
+const slug = (name) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
 const flavourTitle = (flavour) =>
   flavour === "Cupcakes" || flavour === "Theme cakes" ? flavour : `${flavour} cakes`;
 
-function menuTitle(occasion, flavour) {
-  if (!flavour) return occasion === "All" ? "All cakes" : `${occasion} cakes`;
-  return occasion === "All" ? flavourTitle(flavour) : `${flavourTitle(flavour)} for ${occasion}`;
+// Every occasion and flavour is a section on the one page; a cake appears in each
+// section it belongs to. Sections left empty (e.g. by the eggless switch) are dropped.
+function buildSections(group, key, pool, titleFor) {
+  return group
+    .map(({ name, image }) => ({
+      name,
+      image,
+      id: slug(name),
+      title: titleFor(name),
+      cakes: pool.filter((cake) => cake[key].includes(name)),
+    }))
+    .filter((section) => section.cakes.length > 0);
 }
+
+const smoothBehavior = () =>
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeOccasion, setActiveOccasion] = useState("All");
-  const [activeFlavour, setActiveFlavour] = useState(null);
   const [egglessOnly, setEgglessOnly] = useState(false);
   const [barStuck, setBarStuck] = useState(false);
+  const [activeSection, setActiveSection] = useState(null);
   // null until mounted: the page is prerendered, so "today" must come from the visitor's clock.
   const [todaysSpecials, setTodaysSpecials] = useState(null);
-  const [scrollRequest, setScrollRequest] = useState(null);
+  const [scrollTarget, setScrollTarget] = useState(null);
 
   const sentinelRef = useRef(null);
   const barRef = useRef(null);
-  const resultsRef = useRef(null);
+  // While a tap-to-section glide is running, keep the tapped item highlighted.
+  const spyPaused = useRef(false);
+
+  const pool = useMemo(() => (egglessOnly ? cakes.filter((cake) => cake.eggless) : cakes), [egglessOnly]);
+  const occasionSections = useMemo(
+    () => buildSections(occasions, "occasions", pool, (name) => `${name} cakes`),
+    [pool],
+  );
+  const flavourSections = useMemo(
+    () => buildSections(flavours, "flavours", pool, flavourTitle),
+    [pool],
+  );
+
+  const query = searchQuery.trim().toLowerCase();
+  const searchResults = useMemo(() => {
+    if (!query) return null;
+    return pool.filter((cake) =>
+      [cake.name, ...cake.flavours, ...cake.occasions].join(" ").toLowerCase().includes(query),
+    );
+  }, [query, pool]);
 
   // The sentinel sits right above the category bar; once it scrolls away the bar is stuck.
   useEffect(() => {
@@ -59,63 +96,73 @@ export default function Home() {
     setTodaysSpecials(specials.filter((special) => isShowingToday(special, today)));
   }, []);
 
-  const visibleCakes = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    return cakes.filter((cake) => {
-      if (egglessOnly && !cake.eggless) return false;
-      if (activeOccasion !== "All" && !cake.occasions.includes(activeOccasion)) return false;
-      if (activeFlavour && !cake.flavours.includes(activeFlavour)) return false;
-      if (!query) return true;
-      return [cake.name, ...cake.flavours, ...cake.occasions].join(" ").toLowerCase().includes(query);
-    });
-  }, [searchQuery, activeOccasion, activeFlavour, egglessOnly]);
-
-  // Runs after the filtered list has rendered (the carousel may have just hidden).
-  // Category picks only scroll back up; carousel buttons always bring the results into view.
+  // Scroll-spy: the active section is the last one whose heading has reached the upper
+  // third of the space below the bar, i.e. the section being read.
   useEffect(() => {
-    const results = resultsRef.current;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const bar = barRef.current;
+      if (spyPaused.current || !bar) return;
+      const barBottom = bar.getBoundingClientRect().bottom;
+      const line = barBottom + (window.innerHeight - barBottom) * 0.3;
+      const sections = [...document.querySelectorAll("[data-section]")];
+      let current = null;
+      for (const section of sections) {
+        if (section.getBoundingClientRect().top > line) break;
+        current = section.dataset.section;
+      }
+      const atBottom =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+      if (atBottom && sections.length) current = sections[sections.length - 1].dataset.section;
+      setActiveSection(current);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    const resume = () => {
+      spyPaused.current = false;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("wheel", resume, { passive: true });
+    window.addEventListener("touchstart", resume, { passive: true });
+    window.addEventListener("keydown", resume);
+    update();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("wheel", resume);
+      window.removeEventListener("touchstart", resume);
+      window.removeEventListener("keydown", resume);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  // Glide to a section after the render that shows it (search may have just been cleared).
+  useEffect(() => {
     const bar = barRef.current;
-    if (!scrollRequest || !results || !bar) return;
-    const top = results.getBoundingClientRect().top + window.scrollY - bar.offsetHeight - 16;
-    if (scrollRequest.always || window.scrollY > top) {
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      window.scrollTo({ top, behavior: reduceMotion ? "auto" : "smooth" });
-    }
-  }, [scrollRequest]);
+    if (!scrollTarget || !bar) return;
+    const section = document.querySelector(
+      scrollTarget.name ? `[data-section="${CSS.escape(scrollTarget.name)}"]` : "[data-section]",
+    );
+    if (!section) return;
+    const top = section.getBoundingClientRect().top + window.scrollY - bar.offsetHeight - 12;
+    spyPaused.current = true;
+    setActiveSection(section.dataset.section);
+    window.scrollTo({ top, behavior: smoothBehavior() });
+  }, [scrollTarget]);
 
-  const selectAll = () => {
-    setActiveOccasion("All");
-    setActiveFlavour(null);
-    setScrollRequest({ always: false });
-  };
-
-  const selectOccasion = (name) => {
-    setActiveOccasion((current) => (current === name ? "All" : name));
-    setScrollRequest({ always: false });
-  };
-
-  const selectFlavour = (name) => {
-    setActiveFlavour((current) => (current === name ? null : name));
-    setScrollRequest({ always: false });
+  const goToSection = (name) => {
+    setSearchQuery("");
+    setScrollTarget({ name });
   };
 
   const showSpecial = ({ occasion, flavour, eggless }) => {
-    if (occasion) setActiveOccasion(occasion);
-    if (flavour) setActiveFlavour(flavour);
     if (eggless) setEgglessOnly(true);
-    setScrollRequest({ always: true });
-  };
-
-  // The carousel belongs to the plain "All cakes" view; once browsing, results come first.
-  const browsing = activeOccasion !== "All" || activeFlavour || searchQuery.trim();
-  const showSpecials = !browsing && todaysSpecials?.length !== 0;
-
-  const resetFilters = () => {
     setSearchQuery("");
-    setActiveOccasion("All");
-    setActiveFlavour(null);
-    setEgglessOnly(false);
+    setScrollTarget({ name: occasion || flavour || null });
   };
+
+  const sections = [...occasionSections, ...flavourSections];
 
   return (
     <>
@@ -157,38 +204,48 @@ export default function Home() {
           }`}
         >
           <CategoryBar
-            occasions={occasions}
-            flavours={flavours}
-            activeOccasion={activeOccasion}
-            activeFlavour={activeFlavour}
-            onSelectAll={selectAll}
-            onSelectOccasion={selectOccasion}
-            onSelectFlavour={selectFlavour}
+            occasions={occasionSections}
+            flavours={flavourSections}
+            active={searchResults ? null : activeSection}
+            onSelect={goToSection}
           />
         </div>
 
-        <main className="mx-auto max-w-shop px-4 pt-7 pb-16 sm:px-6 sm:pt-9">
-          {showSpecials && (
-            <div className="mb-10 sm:mb-12">
-              {todaysSpecials ? (
-                <SpecialsCarousel slides={todaysSpecials} onSelect={showSpecial} />
-              ) : (
-                <div aria-hidden="true">
-                  <div className={`rounded-3xl bg-surface ${bannerAspect}`} />
-                  <div className="mt-3 h-6" />
+        <main className="mx-auto max-w-shop px-4 pt-7 pb-20 sm:px-6 sm:pt-9">
+          {searchResults ? (
+            <SearchResults
+              query={searchQuery.trim()}
+              cakes={searchResults}
+              egglessOnly={egglessOnly}
+              onClear={() => setSearchQuery("")}
+            />
+          ) : (
+            <>
+              {todaysSpecials?.length !== 0 && (
+                <div className="mb-12 sm:mb-14">
+                  {todaysSpecials ? (
+                    <SpecialsCarousel slides={todaysSpecials} onSelect={showSpecial} />
+                  ) : (
+                    <div aria-hidden="true">
+                      <div className={`rounded-3xl bg-surface ${bannerAspect}`} />
+                      <div className="mt-3 h-6" />
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
+
+              <div className="space-y-11 sm:space-y-14">
+                {sections.map((section, index) => (
+                  <Fragment key={section.id}>
+                    {index === occasionSections.length && index > 0 && (
+                      <hr className="border-ganache/10" />
+                    )}
+                    <CakeRow section={section} priority={index === 0} />
+                  </Fragment>
+                ))}
+              </div>
+            </>
           )}
-          <div ref={resultsRef}>
-            <CakeMenu
-              title={menuTitle(activeOccasion, activeFlavour)}
-              cakes={visibleCakes}
-              egglessOnly={egglessOnly}
-              animationKey={`${activeOccasion}-${activeFlavour}-${egglessOnly}`}
-              onReset={resetFilters}
-            />
-          </div>
         </main>
       </div>
     </>
