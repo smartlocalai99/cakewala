@@ -8,7 +8,7 @@ export const photo = (id, width = 900) =>
 // Occasion and flavour groups follow justbake.in / bakingo.com. Each image is
 // the thumbnail shown in the category bar.
 export const occasions = [
-  { name: "Birthday", image: photo("1607482369189-a53b6e71fa48") },
+  { name: "Birthday", image: photo("1464349153735-7db50ed83c84") },
   { name: "Anniversary", image: photo("1635349135195-ea08a39fcc5c") },
   { name: "Wedding", image: photo("1535141192574-5d4897c12636") },
   { name: "Engagement", image: photo("1559620192-032c4bc4674e") },
