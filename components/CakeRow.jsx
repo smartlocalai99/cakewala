@@ -53,7 +53,7 @@ export default function CakeRow({ section, priority = false }) {
       id={id}
       data-section={name}
       aria-labelledby={`${id}-title`}
-      className="scroll-mt-28"
+      className="scroll-mt-36"
     >
       <div className="flex items-center justify-between gap-3">
         <h2
